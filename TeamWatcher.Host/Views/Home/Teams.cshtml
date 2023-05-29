@@ -1,0 +1,273 @@
+﻿@model List<TeamListViewModel>
+
+@{
+    ViewData["Title"] = "Teams";
+}
+<link href="~/css/lister.css" rel="stylesheet" />
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<h1>Team List</h1>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Teams</li>
+        <li class="breadcrumb-item"></li>
+    </ol>
+</nav>
+
+<div id="teamSuccessAlert" class="alert alert-success" role="alert" style="display: none;">
+    Takım Ekleme İşlemi Başarıyla Tamamlandı.
+</div>
+
+<div id="teamErrorAlert" class="alert alert-danger" role="alert" style="display: none;">
+    Takım Ekleme İşlemi Sırasında Bir Hata Oluştu.
+</div>
+
+<div id="teamDeleteSuccessAlert" class="alert alert-success" role="alert" style="display: none;">
+    Takım Silme İşlemi Başarıyla Tamamlandı.
+</div>
+<div id="teamDeleteErrorAlert" class="alert alert-danger" role="alert" style="display: none;">
+    Takım Silme İşlemi Sırasında Bir Hata Oluştu.
+</div>
+
+<div id="teamEditSuccessAlert" class="alert alert-success" role="alert" style="display: none;">
+    Takım Editleme İşlemi Başarıyla Tamamlandı.
+</div>
+<div id="teamEditErrorAlert" class="alert alert-danger" role="alert" style="display: none;">
+    Takım Editleme İşlemi Sırasında Bir Hata Oluştu.
+</div>
+<br />
+<div class="container">
+    <h2 class="text-cwidthr">Teams</h2>
+    @if (TempData["message"] != null)
+    {
+        <div class="text-success">@TempData["message"]</div>
+    }
+    @if (TempData["error"] != null)
+    {
+        <div class="text-danger">@TempData["error"]</div>
+    }
+
+    <div style="float:right">
+        <button id="openCreateTeamModalButton" class="btn btn-primary"><i class="fas fa-plus"> Add New Team</i></button>
+    </div>
+
+
+
+
+    <br />
+    <br />
+    @if (Model is null || Model.Count == 0)
+    {
+        <h2 class="text-center article-panel brick">There isn't Any Data!</h2>
+    }
+    else
+    {
+        foreach (var team in Model)
+        {
+            <div class="row mb-2 p-1 lister">
+                <div class="col col-9">
+                    <div class="row">
+                        <div class="col col-4">
+                            <div class="row">
+                                <img src="@team.LogoUrl" alt="No Image" style="object-fit: contain; max-width:200px; max-height:150px;" />
+                            </div>
+                        </div>
+                        <div class="col col-8 d-flex align-items-center">
+                            <a class="black action" asp-controller="Home" asp-action="Overview" asp-route-teamId="@team.Id" style="text-align: left; padding-left: 10px;">
+                                <b>Team Name:</b>&nbsp; @team.Name
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col col-3">
+                    <div class="row float-right mt-4 mr-4">
+                        <a class="btn btn-sm btn-warning" asp-controller="Home" asp-action="EditTeam" asp-route-id="@team.Id"><i class="far fa-edit"> Edit</i></a>
+                        <br>
+                        <button class="btn btn-sm btn-danger ml-2" id="teamDelete" data-teamid="@team.Id"><i class="fas fa-ban"> Delete</i></button>
+                        <br>
+                        <a class="btn btn-sm btn-success ml-2" asp-controller="Home" asp-action="Overview" asp-route-teamid="@team.Id"><i class="fas fa-list"> Members</i></a>
+
+
+                    </div>
+                </div>
+            </div>
+
+                <!-- Modal -->
+    <div class="modal fade" id="editTeamModal-@team.Id" tabindex="-1" role="dialog" aria-labelledby="editTeamModalLabel-@team.Id" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editTeamModalLabel-@team.Id">Edit Team: @team.Name</h5>
+                    <button type="button" class="close" data-dismiss="modal" id="editTeamCloseButton-@team.Id" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="editTeamForm-@team.Id">
+                        <div class="form-group">
+                            <label for="editTeamName-@team.Id">Team Name</label>
+                            <input type="text" class="form-control" id="editTeamName-@team.Id">
+                        </div>
+                        <div class="form-group">
+                            <label for="editTeamLogoUrl-@team.Id">Team Logo URL</label>
+                            <input type="text" class="form-control" id="editTeamLogoUrl-@team.Id">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary editTeamButton" data-teamid="@team.Id">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+        }
+    }
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="createTeamModal" tabindex="-1" role="dialog" aria-labelledby="createTeamModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createTeamModalLabel">Add New Team</h5>
+                <button type="button" class="close" data-dismiss="modal" id="createTeamCloseButton" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="createTeamForm">
+                    <div class="form-group">
+                        <label for="TeamName">Team Name</label>
+                        <input type="text" class="form-control" id="TeamName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="TeamLogoUrl">Team Logo(http formatında)</label>
+                        <input type="text" class="form-control" id="TeamLogoUrl">
+                    </div>
+                    <!-- Diğer form alanları eklenebilir -->
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="createTeamButton">Create</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/js/bootstrap.bundle.min.js"></script>
+@section Scripts{
+    <script>
+        $(document).ready(function() {
+    // Yeni Takım Ekle düğmesine tıklama olayı
+    $("#openCreateTeamModalButton").click(function() {
+        // Modal penceresini aç
+        $("#createTeamModal").modal("show");
+    });
+
+    $("#createTeamCloseButton").click(function() {
+
+        $("#createTeamModal").modal("hide");
+        $("#TeamName").val("");
+        $("#TeamLogoUrl").val("");
+    });
+    $("#createTeamButton").click(function() {
+        var TeamName = $("#TeamName").val();
+        var TeamLogoUrl = $("#TeamLogoUrl").val();
+        if (TeamName.trim() === "") {
+            alert("Team Name alanı boş bırakılamaz.");
+            return;
+        }
+
+        $.ajax({
+            url: "/Home/AddTeam",
+            type: "POST",
+            data: {
+                Name: TeamName,
+                LogoUrl: TeamLogoUrl
+            },
+            success: function(response) {
+                $("#createTeamModal").modal("hide");
+                $("#TeamName").val("");
+                $("#TeamLogoUrl").val("");
+                $("#teamSuccessAlert").show().delay(2000).hide(0);
+            },
+            error: function() {
+                $("#teamErrorAlert").show().delay(2000).hide(0);
+            }
+        });
+    });
+
+
+    $(document).on('click', '#teamDelete', function() {
+        var teamId = parseInt($(this).data("teamid"));
+        $.ajax({
+            type: "POST",
+            url: "/Home/DeleteTeam",
+            data: { id: teamId },
+            success: function(response) {
+                if (response) {
+                    $("#teamDeleteSuccessAlert").show().delay(2000).hide(0);
+                } else {
+                    $("#teamDeleteErrorAlert").show().delay(2000).hide(0);
+                }
+            },
+            error: function() {
+                alert("Bir problem oluştu");
+            }
+        });
+    });
+
+
+    //$(document).on('click', '.openEditTeamModalButton', function() {
+    //    var teamId = $(this).data("teamid");
+    //    $("#editTeamModal-" + teamId).modal("show");
+    
+
+    //// Bu satırda parantez hatası var:
+    //$("#editTeamCloseButton-" + teamId).click(function() {
+
+    //    $("#TeamName-" + teamId).val("");
+    //    $("#TeamLogoUrl-" + teamId).val("");
+    //    $("#editTeamModal-" + teamId).modal("hide");
+    //});
+    //});
+
+    //$(document).on('click', 'editTeamButton', function() {
+    //    var teamId = $(this).data("teamid");
+    //    var teamName = $("#editTeamName-" + teamId).val();
+    //    var teamLogoUrl = $("#editTeamLogoUrl-" + teamId).val();
+    //    $.ajax({
+    //    type: "POST",
+    //    url: "/Home/EditTeam",
+    //    data: {
+    //        Id: TeamId,
+    //        Name: TeamName,
+    //        LogoUrl: TeamLogoUrl
+    //    },
+    //    success: function(response) {
+    //        $("#editTeamName-" + teamId).val("");
+    //        $("#editTeamLogoUrl-" + teamId).val("");
+    //        $("#editTeamModal").modal("hide");
+    //        $("#teamEditSuccessAlert").show().delay(2000).hide(0);
+    //    },
+    //    error: function() {
+    //        $("#teamEditErrorAlert").show().delay(2000).hide(0);
+    //    }
+    //});
+    //    // AJAX ile güncelleme işlemini gerçekleştir
+    //    // ...
+    //});
+
+    //if (PlayerName.trim() === "" || PlayerSurname.trim() === "") {
+    //    alert("Bütün Alanları Doldurunuz");
+    //    return;
+    //}
+
+   
+});
+
+    </script>
+}
+

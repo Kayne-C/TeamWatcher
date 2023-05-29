@@ -1,0 +1,268 @@
+﻿@model List<PlayerListViewModel>
+
+@{
+    ViewData["Title"] = "Team Members";
+}
+<link href="~/css/lister.css" rel="stylesheet" />
+<h1>Team Members</h1>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a class="underlined-text" style="color:black" asp-controller="Home" asp-action="Teams">Teams</a></li>
+        <li class="breadcrumb-item" active" aria-current="page">Team Members</li>
+    </ol>
+</nav>
+<div id="playerAddSuccessAlert" class="alert alert-success" role="alert" style="display: none;">
+  Oyuncu Ekleme İşlemi Başarıyla Tamamlandı.
+</div>
+
+<div id="playerAddErrorAlert" class="alert alert-danger" role="alert" style="display: none;">
+  Oyuncu Ekleme İşlemi Sırasında Bir Hata Oluştu.
+</div>
+
+<div id="playerEditSuccessAlert" class="alert alert-success" role="alert" style="display: none;">
+  Oyuncu Editleme İşlemi Başarıyla Tamamlandı.
+</div>
+<div id="playerEditErrorAlert" class="alert alert-danger" role="alert" style="display: none;">
+  Oyuncu Editleme İşlemi Sırasında Bir Hata Oluştu.
+</div>
+
+<div id="playerDeleteSuccessAlert" class="alert alert-success" role="alert" style="display: none;">
+  Oyuncu Silme İşlemi Başarıyla Tamamlandı.
+</div>
+<div id="playerDeleteErrorAlert" class="alert alert-danger" role="alert" style="display: none;">
+  Oyuncu Silme İşlemi Sırasında Bir Hata Oluştu.
+</div>
+
+<br />
+<div style="float:right">
+    <button id="openCreatePlayerModalButton" class="btn btn-primary"><i class="fas fa-plus"> Add New Player</i></button>
+</div>
+
+<div class="container">
+    <h2 class="text-center">@ViewBag.TeamName Team Members</h2>
+    @if (Model is null || Model.Count == 0)
+    {
+        <h2 class="text-center article-panel brick">There aren't any members in this team!</h2>
+    }
+    else
+    {
+        <table class="table table-bordered" style="margin: 0 auto;">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Surname</th>
+                    <th>Age</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var player in Model)
+                {
+                    <tr>
+                        <td>@player.Name</td>
+                        <td>@player.Surname</td>
+                        <td>@player.Age</td>
+                        <td>
+
+                            <button id="deletePlayerButton" class="btn btn-sm btn-danger" data-playerid="@player.Id"><i class="fas fa-ban"></i> Delete</button>
+                            <a class="btn btn-sm btn-warning" asp-controller="Player" asp-action="EditPlayer" asp-route-id="@player.Id"><i class="far fa-edit"></i> Edit</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="createPlayerModal" tabindex="-1" role="dialog" aria-labelledby="createPlayerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createPlayerModalLabel">Add New Player</h5>
+                <button type="button" class="close" data-dismiss="modal" id="closeButton" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="createTeamForm">
+                    <div class="form-group">
+                        <label for="createPlayerName">Player Name</label>
+                        <input type="text" class="form-control" id="createPlayerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="createPlayerSurname">Player Surname</label>
+                        <input type="text" class="form-control" id="createPlayerSurname">
+                    </div>
+                    <div class="form-group">
+                        <label for="createPlayerAge">Player Age</label>
+                        <input type="text" class="form-control" id="createPlayerAge">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="createPlayerButton">Create</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editPlayerModal" tabindex="-1" role="dialog" aria-labelledby="editPlayerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editPlayerModalLabel">Edit Player</h5>
+                <button type="button" class="close" data-dismiss="modal" id="editPlayerModalCloseButton" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editPlayerForm">
+                    <div class="form-group">
+                        <label for="editPlayerName">Player Name</label>
+                        <input type="text" class="form-control" id="editPlayerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPlayerSurname">Player Surname</label>
+                        <input type="text" class="form-control" id="editPlayerSurname">
+                    </div>
+                    <div class="form-group">
+                        <label for="editPlayerAge">Player Age</label>
+                        <input type="text" class="form-control" id="editPlayerAge">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="editPlayerButton">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="teamId" value="@ViewBag.TeamId" />
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/js/bootstrap.bundle.min.js"></script>
+
+<script>
+
+    $(document).ready(function() {
+        // Yeni Takım Ekle düğmesine tıklama olayı
+        $("#openCreatePlayerModalButton").click(function() {
+            // Modal penceresini aç
+            $("#createPlayerModal").modal("show");
+        });
+
+        $("#closeButton").click(function() {
+
+            $("#createPlayerModal").modal("hide");
+            $("#PlayerName").val("");
+            $("#PlayerSurname").val("");
+            $("#PlayerAge").val("");
+        });
+        $(document).on('click', '#createPlayerButton', function() {
+            var PlayerName = $("#createPlayerName").val();
+            var PlayerSurname = $("#createPlayerSurname").val();
+            var PlayerAge = parseInt($("#createPlayerAge").val());
+            var PlayerTeamId = $("#teamId").val();
+            if (PlayerName.trim() === "" || PlayerSurname.trim() === "") {
+                alert("Bütün Alanları Doldurunuz");
+                return;
+            }
+
+            $.ajax({
+                url: "/Player/CreatePlayer",
+                type: "POST",
+                data: {
+                    Name: PlayerName,
+                    Surname: PlayerSurname,
+                    Age: PlayerAge,
+                    TeamId: PlayerTeamId
+                },
+                success: function(response) {
+                    $("#createPlayerModal").modal("hide");
+                    $("#createPlayerName").val("");
+                    $("#createPlayerSurname").val("");
+                    $("#createPlayerAge").val("");
+                    $("#createPlayerModal").modal("hide"); 
+                    $("#playerAddSuccessAlert").show().delay(2000).hide(0); 
+                },
+                error: function() {
+                    $("#playerAddErrorAlert").show().delay(2000).hide(0); 
+                }
+            });
+        });
+
+         $(document).on('click', '#deletePlayerButton', function() {
+                var playerId = parseInt($(this).data("playerid"));
+                $.ajax({
+                    url: "/Player/DeletePlayer",
+                    type: "POST",
+                    data: { 
+                        id: playerId 
+                    },
+                    success: function(response) {
+                       if (response) {
+                           $("#playerDeleteSuccessAlert").show().delay(2000).hide(0); 
+                        }
+                        else {
+                            $("#playerDeleteErrorAlert").show().delay(2000).hide(0);
+                        }
+                    },
+                    error: function() {
+                        alert("Bir problem oluştu");
+                    }
+
+                });
+            });
+        //$("#openEditPlayerModalButton").click(function() {
+        //    $("#editPlayerModal").modal("show");
+        //});
+
+        //$("#editPlayerModalCloseButton").click(function() {
+
+        //    $("#editPlayerModal").modal("hide");
+        //    $("#editPlayerName").val("");
+        //    $("#editPlayerSurname").val("");
+        //    $("#editPlayerAge").val("");
+        //});
+
+
+        //    $(document).on('click', '#editPlayerButton', function() {
+        //    var PlayerId = $("#openEditPlayerModalButton").data("playerid");
+        //    var PlayerName = $("#editPlayerName").val();
+        //    var PlayerSurname = $("#editPlayerSurname").val();
+        //    var PlayerAge = $("#editPlayerAge").val();
+        //    if (PlayerName.trim() === "" || PlayerSurname.trim() === "") {
+        //        alert("Bütün Alanları Doldurunuz");
+        //        return;
+        //    }
+
+        //    $.ajax({
+        //        url: "/Player/EditPlayer",
+        //        type: "POST",
+        //        data: {
+        //            Id: PlayerId,
+        //            Name: PlayerName,
+        //            Surname: PlayerSurname,
+        //            Age: PlayerAge,
+        //        },
+        //        success: function(response) {
+        //            $("#editPlayerModal").modal("hide");
+        //            $("#editPlayerName").val("");
+        //            $("#editPlayerSurname").val("");
+        //            $("#editPlayerAge").val("");
+        //            $("#editPlayerModal").modal("hide"); 
+        //            $("#playerEditSuccessAlert").show().delay(2000).hide(0); 
+        //        },
+        //        error: function() {
+        //            $("#playerEditErrorAlert").show().delay(2000).hide(0); 
+        //        }
+        //    });
+        //});      
+
+    });
+
+</script>
